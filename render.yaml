@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: birth-rate-backend
+    runtime: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.main:app --host 0.0.0.0 --port 8000
+    envVars:
+      - key: PORT
+        value: 8000
+      # Configuración de PostgreSQL (opcional)
+      - key: DB_HOST
+        fromDatabase:
+          name: birth-rate-db
+          property: host
+      - key: DB_NAME
+        fromDatabase:
+          name: birth-rate-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: birth-rate-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: birth-rate-db
+          property: password
+
+  - type: web
+    name: birth-rate-frontend
+    runtime: static
+    buildCommand: npm install && npm run build
+    publish: frontend/
+    envVars:
+      - key: VITE_API_URL
+        value: https://birth-rate-backend.onrender.com
+
+databases:
+  - name: birth-rate-db
+    plan: free
+    databaseName: birth_rate
+    user: birth_rate_user

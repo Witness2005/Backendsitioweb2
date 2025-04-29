@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasas de Natalidad Mundial</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .chart-container { width: 80%; margin: 0 auto; }
+        h1 { text-align: center; color: #333; }
+    </style>
+</head>
+<body>
+    <h1>Tasas de Natalidad Mundial</h1>
+    <div class="chart-container">
+        <canvas id="birthRateChart"></canvas>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/birth-rate');
+                const data = await response.json();
+                
+                // Procesar datos para el gráfico
+                const countries = [...new Set(data.map(item => item.Entity))];
+                const years = [...new Set(data.map(item => item.Year))];
+                
+                // Crear gráfico
+                const ctx = document.getElementById('birthRateChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: years,
+                        datasets: countries.slice(0, 5).map(country => ({
+                            label: country,
+                            data: data
+                                .filter(item => item.Entity === country)
+                                .sort((a, b) => a.Year - b.Year)
+                                .map(item => item['Crude birth rate']),
+                            borderWidth: 2
+                        }))
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: 'Tasa de natalidad (por 1000 personas)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Año'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error al cargar datos:', error);
+                alert('Error al cargar los datos. Por favor intenta más tarde.');
+            }
+        });
+    </script>
+</body>
+</html>
